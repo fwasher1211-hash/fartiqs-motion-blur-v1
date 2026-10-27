@@ -14,7 +14,7 @@ public class FartiqsMotionBlur implements ClientModInitializer {
     public void onInitializeClient() {
         Config.load();
         openMenu = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.fartiqsmotionblur.menu", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_J, "Fartiqs Motion Blur"));
+                "key.fartiqsmotionblur.menu", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_PERIOD, "Fartiqs Motion Blur"));
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenu.wasPressed()) {
                 if (client.currentScreen == null) {
