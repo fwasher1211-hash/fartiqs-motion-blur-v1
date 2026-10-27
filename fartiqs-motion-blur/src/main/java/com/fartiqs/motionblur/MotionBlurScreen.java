@@ -9,7 +9,8 @@ import net.minecraft.text.Text;
 public class MotionBlurScreen extends Screen {
     private final Screen parent;
     private ButtonWidget enabledBtn, adaptiveBtn, menusBtn, aspectToggleBtn, presetBtn;
-    private SliderWidget strengthSlider, sensSlider, aspectSlider;
+    private SliderWidget strengthSlider, sensSlider;
+    private AspectSlider aspectSlider;
 
     public MotionBlurScreen(Screen parent) {
         super(Text.literal("Fartiqs Motion Blur"));
@@ -76,25 +77,14 @@ public class MotionBlurScreen extends Screen {
             float v = Config.ASPECT_VALUES[c.aspectPreset];
             if (v > 0) {
                 c.aspect = v;
-                aspectSlider.setValue(sliderFromAspect(v));
+                aspectSlider.setFromAspect(v);
             }
             b.setMessage(presetText(c));
             Config.save();
         }).dimensions(x, y, w, 20).build());
         y += step;
 
-        aspectSlider = addDrawableChild(new SliderWidget(x, y, w, 20, Text.empty(), sliderFromAspect(c.aspect)) {
-            { updateMessage(); }
-            @Override protected void updateMessage() {
-                setMessage(Text.literal(String.format("Aspect Ratio: %.2f", c.aspect)));
-            }
-            @Override protected void applyValue() {
-                c.aspect = 0.5f + (float) this.value * 3.5f; // 0.5 - 4.0
-                c.aspectPreset = Config.ASPECT_NAMES.length - 1; // Custom
-                presetBtn.setMessage(presetText(c));
-                Config.save();
-            }
-        });
+        aspectSlider = addDrawableChild(new AspectSlider(x, y, w, 20));
         y += step + 10;
 
         addDrawableChild(ButtonWidget.builder(Text.literal("Reset To Defaults"), b -> {
@@ -102,6 +92,32 @@ public class MotionBlurScreen extends Screen {
         }).dimensions(x, y, w / 2 - 2, 20).build());
         addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> close())
                 .dimensions(x + w / 2 + 2, y, w / 2 - 2, 20).build());
+    }
+
+    private class AspectSlider extends SliderWidget {
+        AspectSlider(int x, int y, int w, int h) {
+            super(x, y, w, h, Text.empty(), sliderFromAspect(Config.get().aspect));
+            updateMessage();
+        }
+
+        void setFromAspect(float a) {
+            this.value = sliderFromAspect(a);
+            updateMessage();
+        }
+
+        @Override
+        protected void updateMessage() {
+            setMessage(Text.literal(String.format("Aspect Ratio: %.2f", Config.get().aspect)));
+        }
+
+        @Override
+        protected void applyValue() {
+            Config c = Config.get();
+            c.aspect = 0.5f + (float) this.value * 3.5f; // 0.5 - 4.0
+            c.aspectPreset = Config.ASPECT_NAMES.length - 1; // Custom
+            if (presetBtn != null) presetBtn.setMessage(presetText(c));
+            Config.save();
+        }
     }
 
     private static Text presetText(Config c) {
